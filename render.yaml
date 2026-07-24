@@ -1,16 +1,23 @@
+# TaskFlow backend deployment config
 services:
   - type: web
     name: taskflow-backend
     env: python
-    buildCommand: pip install -r requirements.txt && python manage.py migrate && python manage.py collectstatic --no-input
-    startCommand: gunicorn taskflow.wsgi:application --bind 0.0.0.0:$PORT
+    plan: free
+    region: singapore
+    buildCommand: pip install -r requirements.txt && python manage.py collectstatic --no-input && python manage.py migrate
+    startCommand: gunicorn taskflow.wsgi:application --bind 0.0.0.0:$PORT --workers 2 --timeout 120
     envVars:
       - key: SECRET_KEY
         generateValue: true
       - key: DEBUG
         value: "False"
+      - key: PYTHON_VERSION
+        value: "3.12.0"
       - key: DB_NAME
-        value: taskflow
+        fromDatabase:
+          name: taskflow-db
+          property: database
       - key: DB_USER
         fromDatabase:
           name: taskflow-db
@@ -31,3 +38,4 @@ services:
 databases:
   - name: taskflow-db
     plan: free
+    region: singapore
