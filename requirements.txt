@@ -9,3 +9,5 @@ tzdata==2026.2
 python-dotenv
 pytest
 pytest-django
+gunicorn
+django-cors-headers

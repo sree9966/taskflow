@@ -1,0 +1,33 @@
+services:
+  - type: web
+    name: taskflow-backend
+    env: python
+    buildCommand: pip install -r requirements.txt && python manage.py migrate && python manage.py collectstatic --no-input
+    startCommand: gunicorn taskflow.wsgi:application --bind 0.0.0.0:$PORT
+    envVars:
+      - key: SECRET_KEY
+        generateValue: true
+      - key: DEBUG
+        value: "False"
+      - key: DB_NAME
+        value: taskflow
+      - key: DB_USER
+        fromDatabase:
+          name: taskflow-db
+          property: user
+      - key: DB_PASSWORD
+        fromDatabase:
+          name: taskflow-db
+          property: password
+      - key: DB_HOST
+        fromDatabase:
+          name: taskflow-db
+          property: host
+      - key: DB_PORT
+        fromDatabase:
+          name: taskflow-db
+          property: port
+
+databases:
+  - name: taskflow-db
+    plan: free
