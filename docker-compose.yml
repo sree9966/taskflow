@@ -20,7 +20,7 @@ services:
   web:
     build: .
     ports:
-      - "8000:8000"
+      - "8000:10000"
     env_file:
       - .env                    # loads your .env into the container
     depends_on:
