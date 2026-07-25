@@ -1,7 +1,7 @@
 # TaskFlow backend deployment config
 services:
   - type: web
-    name: taskflow-backend
+    name: taskflow
     env: python
     plan: free
     region: singapore
