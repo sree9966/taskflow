@@ -23,7 +23,7 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 import os
 from dotenv import load_dotenv
 from pathlib import Path
-import dj_database_Url
+
 
 load_dotenv()  # loads your .env file automatically
 
