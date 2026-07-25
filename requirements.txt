@@ -11,3 +11,4 @@ pytest
 pytest-django
 gunicorn
 django-cors-headers
+dj-database-url
