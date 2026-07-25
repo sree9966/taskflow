@@ -26,8 +26,13 @@ from pathlib import Path
 
 
 load_dotenv()  # loads your .env file automatically
+if os.path.exists('.env'):
+    from dotenv import load_dotenv
+    load_dotenv()
 
-SECRET_KEY = os.environ.get("SECRET_KEY")
+SECRET_KEY = os.environ.get("SECRET_KEY", "django-insecure-fallback-key-for-local-only")
+DEBUG = os.environ.get("DEBUG", "False") == "True"
+
 
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
