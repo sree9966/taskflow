@@ -18,3 +18,4 @@ class CanDeleteTask(BasePermission):
             obj.created_by == request.user or
             obj.project.owner == request.user
         )
+
