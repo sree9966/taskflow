@@ -11,6 +11,10 @@ import bcrypt
 from app.models import User, Project, Task
 from app.serializers import RegisterSerializer, LoginSerializer, ProjectSerializer, TaskSerializer
 from app.permissions import IsProjectOwner, CanDeleteTask
+from rest_framework import generics
+from django.shortcuts import get_object_or_404
+
+
 
 
 def generate_token(user):
@@ -53,20 +57,19 @@ class LoginView(APIView):
         return Response({"token": generate_token(user)})
 
 
-class ProjectListCreate(APIView):
+class ProjectListCreate(generics.ListCreateAPIView):
+    serializer_class = ProjectSerializer
+    permission_classes = [IsAuthenticated]
 
-    def get(self, request):
-        projects = Project.objects.filter(owner=request.user)
-        return Response(ProjectSerializer(projects, many=True).data)
-
-    def post(self, request):
-        project = Project.objects.create(
-            name=request.data.get("name"),
-            description=request.data.get("description", ""),
-            owner=request.user
+    def get_queryset(self):
+        return (
+            Project.objects.filter(owner=self.request.user)
+            .select_related("owner")
+            .order_by("-created_at", "-id")
         )
-        return Response(ProjectSerializer(project).data, status=201)
 
+    def perform_create(self, serializer):
+        serializer.save(owner=self.request.user)
 
 class ProjectDetail(APIView):
 
@@ -104,36 +107,28 @@ class ProjectDetail(APIView):
         project.delete()
         return Response(status=204)
 
+class TaskListCreate(generics.ListCreateAPIView):
+    serializer_class = TaskSerializer
+    permission_classes = [IsAuthenticated]
 
-class TaskListCreate(APIView):
+    def get_project(self):
+        return get_object_or_404(
+            Project, id=self.kwargs["project_id"], owner=self.request.user
+        )
 
-    def get(self, request, project_id):
-        tasks = Task.objects.filter(project_id=project_id)
-
-        status = request.GET.get("status")
-        assignee = request.GET.get("assignee")
-
+    def get_queryset(self):
+        project = self.get_project()
+        tasks = Task.objects.filter(project=project).order_by("-created_at", "-id")
+        status = self.request.query_params.get("status")
+        assignee = self.request.query_params.get("assignee")
         if status:
             tasks = tasks.filter(status=status)
         if assignee:
             tasks = tasks.filter(assignee_id=assignee)
+        return tasks
 
-        return Response(TaskSerializer(tasks, many=True).data)
-
-    def post(self, request, project_id):
-        try:
-            project = Project.objects.get(id=project_id)
-        except Project.DoesNotExist:
-            raise NotFound()
-
-        task = Task.objects.create(
-            title=request.data["title"],
-            description=request.data.get("description"),
-            project=project,
-            created_by=request.user
-        )
-        return Response(TaskSerializer(task).data, status=201)
-
+    def perform_create(self, serializer):
+        serializer.save(project=self.get_project(), created_by=self.request.user)
 
 class TaskDetail(APIView):
 
