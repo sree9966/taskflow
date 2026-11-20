@@ -42,6 +42,7 @@ class TaskSerializer(serializers.ModelSerializer):
                   "project", "assignee", "created_by", "due_date",
                   "created_at", "updated_at"]
          read_only_fields = ["id", "project", "created_by", "created_at", "updated_at"]
-        
+
+
 
 
