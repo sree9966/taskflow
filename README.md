@@ -53,7 +53,14 @@ DB_USER=postgres
 DB_PASSWORD=your-password
 DB_HOST=db
 DB_PORT=5432
+DEBUG=False
+ALLOWED_HOSTS=localhost,127.0.0.1
+CORS_ALLOWED_ORIGINS=http://localhost:5173
 ```
+
+For deployment, set `ALLOWED_HOSTS` to the API host and `CORS_ALLOWED_ORIGINS`
+to the frontend origin. The frontend reads its API URL from
+`VITE_API_BASE_URL` (see the frontend `.env.example`).
 
 Start the containers:
 

@@ -19,3 +19,14 @@ class CanDeleteTask(BasePermission):
             obj.project.owner == request.user
         )
 
+
+class CanEditTask(BasePermission):
+    """Allow edits only to the task creator or project owner."""
+    message = "Only the task creator or project owner can edit this task."
+
+    def has_object_permission(self, request, view, obj):
+        return (
+            obj.created_by == request.user or
+            obj.project.owner == request.user
+        )
+
