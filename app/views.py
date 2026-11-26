@@ -10,7 +10,7 @@ import bcrypt
 
 from app.models import User, Project, Task
 from app.serializers import RegisterSerializer, LoginSerializer, ProjectSerializer, TaskSerializer
-from app.permissions import IsProjectOwner, CanDeleteTask
+from app.permissions import IsProjectOwner, CanDeleteTask, CanEditTask
 from rest_framework import generics
 from django.shortcuts import get_object_or_404
 
@@ -133,6 +133,8 @@ class TaskListCreate(generics.ListCreateAPIView):
 class TaskDetail(APIView):
 
     def get_permissions(self):
+        if self.request.method == "PATCH":
+            return [IsAuthenticated(), CanEditTask()]
         if self.request.method == "DELETE":
             return [IsAuthenticated(), CanDeleteTask()]
         return [IsAuthenticated()]
@@ -145,16 +147,11 @@ class TaskDetail(APIView):
 
     def patch(self, request, pk):
         task = self.get_object(pk)
-        for field in ["title", "description", "status", "priority", "due_date"]:
-            if field in request.data:
-                setattr(task, field, request.data[field])
-        if "assignee" in request.data:
-            try:
-                task.assignee = User.objects.get(id=request.data["assignee"])
-            except User.DoesNotExist:
-                return Response({"error": "assignee not found"}, status=400)
-        task.save()
-        return Response(TaskSerializer(task).data)
+        self.check_object_permissions(request, task)
+        serializer = TaskSerializer(task, data=request.data, partial=True)
+        serializer.is_valid(raise_exception=True)
+        serializer.save()
+        return Response(serializer.data)
 
     def delete(self, request, pk):
         task = self.get_object(pk)
